@@ -53,16 +53,36 @@ app.delete('/api/persons/:id', (req, res) => {
   res.status(204).end()
 })
 
-app.post('/api/persons', (req, res) => {
-  const maxId = persons.length > 0
-    ? Math.floor(1 + Math.random() * 100) 
-    : 0
+const generateId = () => (Math.floor(Math.random() * 100))
 
-  const person = req.body
-  person.id = maxId
+app.post('/api/persons', (req, res) => {
+  const body = req.body
+
+  if (!body.name) {
+    return res.status(400).json({ 
+      error: 'name missing' 
+    })
+  }
+  
+  if (!body.number) {
+    return res.status(400).json({
+      error: 'number missing'
+    })
+  }
+
+  if (persons.find(person => person.name === body.name)) {
+    return res.status(409).json({
+        error: "name is already in the phonebook"
+    })
+  }
+
+  const person = {
+    name : body.name,
+    number : body.number,
+    id: generateId(),
+  }
 
   persons = persons.concat(person)
-
   res.json(person)
 })
 
