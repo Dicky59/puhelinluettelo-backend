@@ -1,12 +1,14 @@
 const express = require('express')
 const morgan = require('morgan')
 const app = express()
+const cors = require('cors')
 
 morgan.token('requestBody', function getRequestBody(req) {
   return JSON.stringify(req.body)
 })
 
 app.use(express.json())
+app.use(cors())
 
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :requestBody', {
   skip: function (req, res) { return req.method != 'POST' }
@@ -32,10 +34,10 @@ let persons = [
       id: 3
   },
   {
-      name: "Mary Poppendieck",
-      number: "39-23-6423122",
-      id: 4
-  }
+    name: "Ripa Risukasa",
+    number: "39-23-777 888",
+    id: 4
+}
 ]
 
 app.get('/api/persons', (req, res) => {
