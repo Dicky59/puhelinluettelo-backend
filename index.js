@@ -9,6 +9,7 @@ morgan.token('requestBody', function getRequestBody(req) {
 
 app.use(express.json())
 app.use(cors())
+app.use(express.static('build'))
 
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :requestBody', {
   skip: function (req, res) { return req.method != 'POST' }
