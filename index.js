@@ -2,6 +2,9 @@ const express = require('express')
 const morgan = require('morgan')
 const app = express()
 const cors = require('cors')
+const bodyParser = require('body-parser')
+require('dotenv').config()
+const Person = require('./models/person')
 
 morgan.token('requestBody', function getRequestBody(req) {
   return JSON.stringify(req.body)
@@ -9,7 +12,8 @@ morgan.token('requestBody', function getRequestBody(req) {
 
 app.use(express.json())
 app.use(cors())
-app.use(express.static('build'))  
+app.use(express.static('build'))
+app.use(bodyParser.json())  
 
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :requestBody', {
   skip: function (req, res) { return req.method != 'POST' }
@@ -18,62 +22,35 @@ app.use(morgan('tiny', {
   skip: function (req, res) { return req.method == 'POST' }
 }))
 
-let persons = [
-  {
-      name: "Arto Hellas",
-      number: "040-123456",
-      id: 1
-  },
-  {
-      name: "Ada Lovelace",
-      number: "39-44-5323523",
-      id: 2
-  },
-  {
-      name: "Dan Abramov",
-      number: "12-43-234345",
-      id: 3
-  },
-  {
-    name: "Ripa Risukasa",
-    number: "39-23-777 888",
-    id: 4
-  },
-  {
-    name: "Pate Patukas",
-    number: "040-777-777",
-    id: 5
-  }
-]
-
 app.get('/api/persons', (req, res) => {
-  res.json(persons)
+  Person.find({}).then(persons => {
+    res.json(persons)
+  })
 })
 
 app.get('/api/persons/:id', (req, res) => {
-  const id = Number(req.params.id)
-  const person = persons.find(person => person.id === id)
-  if (person) {
-    res.json(person)
-  } else {
-    res.status(404).end()
-  }
+  Person.findById(req.params.id).then(person => {
+    res.json(person.toJSON())
+  })
 })
 
-app.get("/info", (req, res) => {
-  res.send([
-      `<p>Phonebook has info for ${persons.length} people</p>`,
-      `<p>${new Date()}</p>`
-  ].join("\n"))
+app.get('/info', (req, res) => {
+  Person.find({}).then(persons => {
+    const content = `
+      Phonebook has info for ${persons.length} people
+      <br/><br/>
+      ${new Date()}
+    `
+    res.send(content)
+  })
 })
+
 
 app.delete('/api/persons/:id', (req, res) => {
   const id = Number(req.params.id)
   persons = persons.filter(person => person.id !== id)
   res.status(204).end()
 })
-
-const generateId = () => (Math.floor(Math.random() * 100))
 
 app.post('/api/persons', (req, res) => {
   const body = req.body
@@ -106,7 +83,7 @@ app.post('/api/persons', (req, res) => {
   res.json(person)
 })
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
