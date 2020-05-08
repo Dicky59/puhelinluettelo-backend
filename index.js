@@ -9,7 +9,7 @@ morgan.token('requestBody', function getRequestBody(req) {
 
 app.use(express.json())
 app.use(cors())
-app.use(express.static('build'))
+app.use(express.static('build'))  
 
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :requestBody', {
   skip: function (req, res) { return req.method != 'POST' }
@@ -38,7 +38,12 @@ let persons = [
     name: "Ripa Risukasa",
     number: "39-23-777 888",
     id: 4
-}
+  },
+  {
+    name: "Pate Patukas",
+    number: "040-777-777",
+    id: 5
+  }
 ]
 
 app.get('/api/persons', (req, res) => {
