@@ -1,8 +1,8 @@
 const express = require('express')
+const bodyParser = require('body-parser')
 const morgan = require('morgan')
 const app = express()
 const cors = require('cors')
-const bodyParser = require('body-parser')
 require('dotenv').config()
 const Person = require('./models/person')
 
@@ -10,10 +10,9 @@ morgan.token('requestBody', function getRequestBody(req) {
   return JSON.stringify(req.body)
 })
 
-app.use(express.json())
-app.use(cors())
 app.use(express.static('build'))
-app.use(bodyParser.json())  
+app.use(bodyParser.json())
+app.use(cors())
 
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :requestBody', {
   skip: function (req, res) { return req.method != 'POST' }
@@ -32,25 +31,37 @@ app.get('/api/persons/:id', (req, res) => {
   Person.findById(req.params.id).then(person => {
     res.json(person.toJSON())
   })
+  .catch(error => next(error))
 })
 
 app.get('/info', (req, res) => {
   Person.find({}).then(persons => {
-    const content = `
-      Phonebook has info for ${persons.length} people
+    const content = `Phonebook has info for ${persons.length} people
       <br/><br/>
-      ${new Date()}
-    `
+      ${new Date()}`
+
     res.send(content)
   })
 })
 
-
-app.delete('/api/persons/:id', (req, res) => {
-  const id = Number(req.params.id)
-  persons = persons.filter(person => person.id !== id)
-  res.status(204).end()
+app.delete('/api/persons/:id', (req, res, next) => {
+  Person.findByIdAndRemove(req.params.id)
+  .then(() => {response.status(204).end()
+  })
+  .catch(error => next(error))
 })
+
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError' && error.kind === 'ObjectId') {
+    return response.status(400).send({ error: 'malformatted id' })
+  }
+
+  next(error)
+}
+
+app.use(errorHandler)
 
 app.post('/api/persons', (req, res) => {
   const body = req.body
@@ -67,6 +78,7 @@ app.post('/api/persons', (req, res) => {
   person.save().then(savedPerson => {
     res.json(savedPerson.toJSON())
   })
+  .catch(error => next(error))
 })
 
 const PORT = process.env.PORT
