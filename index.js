@@ -16,10 +16,10 @@ app.use(bodyParser.json())
 app.use(cors())
 
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :requestBody', {
-  skip: function (req, res) { return req.method != 'POST' }
+  skip: function (req, res) { return req.method !== 'POST' }
 }))
 app.use(morgan('tiny', {
-  skip: function (req, res) { return req.method == 'POST' }
+  skip: function (req, res) { return req.method === 'POST' }
 }))
 
 app.get('/api/persons', (req, res) => {
@@ -32,7 +32,7 @@ app.get('/api/persons/:id', (req, res, next) => {
   Person.findById(req.params.id).then(person => {
     res.json(person.toJSON())
   })
-  .catch(error => next(error))
+    .catch(error => next(error))
 })
 
 app.get('/info', (req, res) => {
@@ -47,9 +47,9 @@ app.get('/info', (req, res) => {
 
 app.delete('/api/persons/:id', (req, res, next) => {
   Person.findByIdAndRemove(req.params.id)
-  .then(() => {response.status(204).end()
-  })
-  .catch(error => next(error))
+    .then(() => {res.status(204).end()
+    })
+    .catch(error => next(error))
 })
 
 app.post('/api/persons', (req, res, next) => {
@@ -69,8 +69,8 @@ app.post('/api/persons', (req, res, next) => {
     .then(savedPerson => savedPerson.toJSON())
     .then(savedAndFormattedPerson => {
       res.json(savedAndFormattedPerson)
-  })
-  .catch(error => next(error))
+    })
+    .catch(error => next(error))
 })
 
 app.put('/api/persons/:id', (request, response, next) => {
